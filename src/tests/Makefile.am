@@ -15,6 +15,7 @@ check_PROGRAMS = \
 	pingpong	\
 	stream	\
 	register	\
-	opt
+	opt	\
+	loopback
 
 TESTS =
