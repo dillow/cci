@@ -77,6 +77,10 @@ struct ccieth_endpoint {
 	atomic_t connection_req_seqnum;
 	atomic_t connection_received;	/* up to CCIETH_MAX_CONNECTION_RECEIVED */
 
+	/* same */
+	struct idr rma_handle_idr;
+	spinlock_t rma_handle_idr_lock;
+
 	struct rcu_head release_ifp_rcu_head;
 	struct net_device *release_ifp;
 
@@ -283,6 +287,10 @@ extern int ccieth_msg_ack(struct ccieth_connection *conn);
 extern void ccieth_abort_reliable_send_scb(struct ccieth_connection *conn, struct ccieth_skb_cb *scb, int error);
 
 extern int ccieth_recv(struct sk_buff *skb, struct net_device *ifp, struct packet_type *pt, struct net_device *orig_dev);
+
+extern int ccieth_rma_register(struct ccieth_endpoint *endpoint, struct ccieth_ioctl_rma_register *rr);
+extern int ccieth_rma_deregister(struct ccieth_endpoint *endpoint, struct ccieth_ioctl_rma_deregister *dr);
+extern int ccieth_destroy_rma_handle_idrforeach_cb(int id, void *p, void *data);
 
 static inline struct ccieth_driver_event *
 ccieth_get_free_event(struct ccieth_endpoint *ep)

@@ -34,7 +34,7 @@ ccieth_destroy_endpoint(struct ccieth_endpoint *ep)
 {
 	struct ccieth_driver_event *event, *nevent;
 	struct net_device *ifp;
-	int destroyed_conn = 0;
+	int destroyed;
 	int must_put_ifp = 0;
 
 	spin_lock(&ccieth_ep_idr_lock);
@@ -59,10 +59,17 @@ ccieth_destroy_endpoint(struct ccieth_endpoint *ep)
 
 	/* no new users now, but some possible deferred works for connections */
 
+	destroyed = 0;
 	idr_for_each(&ep->connection_idr, ccieth_destroy_connection_idrforeach_cb,
-		     &destroyed_conn);
-	dprintk("destroyed %d connections on endpoint destroy\n", destroyed_conn);
+		     &destroyed);
+	dprintk("destroyed %d connections on endpoint destroy\n", destroyed);
 	idr_remove_all(&ep->connection_idr);
+
+	destroyed = 0;
+	idr_for_each(&ep->rma_handle_idr, ccieth_destroy_rma_handle_idrforeach_cb,
+		     &destroyed);
+	dprintk("destroyed %d rma handles on endpoint destroy\n", destroyed);
+	idr_remove_all(&ep->rma_handle_idr);
 
 	/* some rcu callbacks may be in flight, either users of ep->ifp,
 	 * or because of deferred connection destruction (which may release endpoint events)
@@ -155,6 +162,9 @@ ccieth_create_endpoint(struct file *file, struct ccieth_ioctl_create_endpoint *a
 
 	skb_queue_head_init(&ep->deferred_connect_recv_queue);
 	INIT_WORK(&ep->deferred_connect_recv_work, ccieth_deferred_connect_recv_workfunc);
+
+	idr_init(&ep->rma_handle_idr);
+	spin_lock_init(&ep->rma_handle_idr_lock);
 
 retry:
 	/* reserve an index without exposing the endpoint there yet
@@ -475,6 +485,46 @@ ccieth_miscdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 			ret = ccieth_msg_reliable(ep, &ms_arg);
 		else
 			ret = ccieth_msg_unreliable(ep, &ms_arg);
+		if (ret < 0)
+			return ret;
+
+		return 0;
+	}
+
+	case CCIETH_IOCTL_RMA_REGISTER: {
+		struct ccieth_ioctl_rma_register rr_arg;
+		struct ccieth_endpoint *ep = file->private_data;
+
+		if (!ep)
+			return -EINVAL;
+
+		ret = copy_from_user(&rr_arg, (__user void *)arg, sizeof(rr_arg));
+		if (ret)
+			return -EFAULT;
+
+		ret = ccieth_rma_register(ep, &rr_arg);
+		if (ret < 0)
+			return ret;
+
+		ret = copy_to_user((__user void *)arg, &rr_arg, sizeof(rr_arg));
+		if (ret)
+			return -EFAULT;
+
+		return 0;
+	}
+
+	case CCIETH_IOCTL_RMA_DEREGISTER: {
+		struct ccieth_ioctl_rma_deregister dr_arg;
+		struct ccieth_endpoint *ep = file->private_data;
+
+		if (!ep)
+			return -EINVAL;
+
+		ret = copy_from_user(&dr_arg, (__user void *)arg, sizeof(dr_arg));
+		if (ret)
+			return -EFAULT;
+
+		ret = ccieth_rma_deregister(ep, &dr_arg);
 		if (ret < 0)
 			return ret;
 
