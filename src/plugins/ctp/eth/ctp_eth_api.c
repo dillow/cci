@@ -1084,6 +1084,9 @@ static int ctp_eth_rma(cci_connection_t * connection,
 	struct ccieth_ioctl_rma arg;
 	int ret;
 
+	if (!connection || connection->attribute == CCI_CONN_ATTR_UU)
+		return CCI_EINVAL;
+
 	/* ccieth always copies to kernel sk_buffs */
 	flags &= ~CCI_FLAG_NO_COPY;
 
@@ -1094,10 +1097,6 @@ static int ctp_eth_rma(cci_connection_t * connection,
 	ETH_BUILD_ASSERT(CCI_FLAG_FENCE == CCIETH_FLAG_FENCE);
 	/* make sure internal flags don't conflict with API flags */
 	assert(!(flags & CCIETH_FLAG_RELIABLE));
-
-	/* add internal flags */
-	if (connection->attribute != CCI_CONN_ATTR_UU)
-		flags |= CCIETH_FLAG_RELIABLE;
 
 	arg.conn_id = econn->id;
 	arg.msg_ptr = (uintptr_t) msg_ptr;
