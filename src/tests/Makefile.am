@@ -15,7 +15,8 @@ check_PROGRAMS = \
 	pingpong	\
 	stream	\
 	register	\
-    rma_pipeline \
+	rma_pipeline \
+	sink_control \
 	opt
 
 TESTS =
