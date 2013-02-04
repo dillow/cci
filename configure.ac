@@ -21,6 +21,8 @@ AC_CONFIG_MACRO_DIR([./config])
 # Define $target
 AC_CANONICAL_TARGET
 
+AM_PROG_AR
+
 CCI_CONFIGURE_SETUP
 
 cci_show_title "Configuring CCI distribution tarball"
