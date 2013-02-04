@@ -9,7 +9,8 @@ include_HEADERS = \
 include_ccidir = $(includedir)/cci
 include_cci_HEADERS = \
         cci/config.h
-nodist_include_cci_HEADERS = cci/configure_output.h
+#nodist_include_cci_HEADERS = cci/configure_output.h
+nodist_include_cci_HEADERS =
 
 EXTRA_DIST = \
 	cci_lib_types.h \

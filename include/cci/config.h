@@ -20,7 +20,7 @@
 #define CCI_CONFIG_H
 
 /* Include all the output from configure */
-#include "cci/configure_output.h"
+/*#include "cci/configure_output.h"*/
 
 /*
  * BEGIN_C_DECLS should be used at the beginning of your declarations,

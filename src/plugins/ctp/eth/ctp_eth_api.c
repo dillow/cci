@@ -14,10 +14,13 @@
 #include <fcntl.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include "ccieth_io.h"
 
 #include "cci.h"
+#include "cci_lib_types.h"
+#include "cci-api.h"
 #include "plugins/ctp/ctp.h"
 #include "ctp_eth.h"
 
